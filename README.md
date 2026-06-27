@@ -105,6 +105,34 @@ journalctl -u scanfiler.service -f
 
 macOS/Windows: use `scanfiler loop` under launchd / Task Scheduler.
 
+## Self-update
+
+With `auto_update.enabled: true`, each run first checks the git remote and, if a newer
+version exists, updates and re-runs on it before doing any work:
+
+```
+git fetch → pick target (latest release tag by default, or a branch)
+   → if newer & working tree clean: checkout → pip install (if pyproject.toml changed)
+   → re-exec into the new version (so this run uses it)
+```
+
+- **`ref`** — `latest-release` (newest `vX.Y.Z` tag; stable, recommended) or a branch
+  name like `main` (bleeding edge).
+- **Signature verification (on by default).** Before applying, the target commit's
+  signature is checked with `git verify-commit`. If it isn't validly signed by a trusted
+  key, the update is **refused** (fail-closed) and the run continues on the current
+  version. Disable with `verify_signature: false` only if you understand the risk. For
+  SSH-signed commits, point `allowed_signers_file` at an allowed-signers file; for GPG,
+  import your public key into the deploy user's keyring and leave it unset.
+- **Fail-safe.** Any problem (offline, dirty tree, install error) is logged and the run
+  continues on the current version; a failed install rolls the checkout back.
+- **Skipped** when not run from a git clone, when the working tree is dirty, and on
+  `--dry-run`. In `loop` mode the check runs each cycle, so a long-running daemon picks
+  up releases without a manual restart (it tracks tags via a detached HEAD).
+- **Requires the deploy to be a git working tree** with network access to the remote —
+  i.e. `git clone` the repo and `pip install -e .` rather than installing a wheel. The
+  `repo_dir` defaults to the repo root above the package; override it if needed.
+
 ## Testing
 
 ```bash

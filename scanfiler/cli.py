@@ -78,6 +78,14 @@ def _run_once(cfg: Config, args) -> int:
     from .pipeline import plan
     from .proposals import write_proposals
 
+    # Check for + apply a newer release before doing any work. Done before the lock so a
+    # re-exec into the updated version doesn't deadlock against our own lockfile. On a
+    # dry run we never mutate the install.
+    if cfg.auto_update.enabled and not args.dry_run:
+        from .self_update import default_deps, perform_self_update
+
+        perform_self_update(cfg.auto_update, default_deps(cfg.auto_update))
+
     client = _make_client(cfg)
     lock_path = Path(cfg.logging.ledger_db).with_suffix(".lock")
     try:
