@@ -38,6 +38,7 @@ apply:
   action: copy
 
 logging:
+  log_dir: samples/logs
   audit_file: samples/logs/audit.jsonl
   ledger_db: samples/state/ledger.sqlite
 

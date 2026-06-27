@@ -133,6 +133,30 @@ git fetch → pick target (latest release tag by default, or a branch)
   i.e. `git clone` the repo and `pip install -e .` rather than installing a wheel. The
   `repo_dir` defaults to the repo root above the package; override it if needed.
 
+## Run logs
+
+With `logging.enabled: true` (the default), every `plan`/`run` writes a fresh
+timestamped log to `logging.log_dir` (`scanfiler-<YYYYMMDD-HHMMSS-mmm>.log`). It records,
+per file, whether it was **sent** to the LLM, **skipped** (with the reason — already
+judged, already named, image under text mode, …), **processed** successfully, or
+**failed**, and ends with a summary of the counts:
+
+```
+SEND: SCAN00001.pdf (pdf, 0 image(s), 354 text chars)
+OK: SCAN00001.pdf -> receipts/2025-06-riverside-auto-service-receipt.pdf (conf=0.95)
+SKIP (criteria): PIC00001.png - nothing to send in text mode
+---- run summary ----
+sent to LLM:              2
+processed successfully:   2 (of which 0 routed to _Unsorted)
+failed:                   0
+skipped (already judged): 0
+skipped (criteria):       1 (selection 0 + nothing-to-send 1)
+```
+
+Failures log full diagnostics — status code, URL, the request (with base64 image data
+redacted to a size summary), and the response body — so you can see exactly what the
+server returned. Set `logging.enabled: false` to turn run logs off.
+
 ## Testing
 
 ```bash
