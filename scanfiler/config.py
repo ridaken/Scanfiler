@@ -101,6 +101,17 @@ class PromptConfig(BaseModel):
     )
 
 
+class AutoUpdateConfig(BaseModel):
+    enabled: bool = False
+    # 'latest-release' (newest vX.Y.Z tag) or a branch name (e.g. main) to track.
+    ref: str = "latest-release"
+    install_deps: bool = True              # reinstall when pyproject.toml changed
+    restart: bool = True                   # re-exec into the new version this run
+    verify_signature: bool = True          # require a trusted commit signature (fail-closed)
+    allowed_signers_file: str | None = None  # SSH allowed-signers file; else system gpg trust
+    repo_dir: str | None = None            # defaults to the repo root above the package
+
+
 class Config(BaseModel):
     paths: PathsConfig
     ai: AIConfig = Field(default_factory=AIConfig)
@@ -113,6 +124,7 @@ class Config(BaseModel):
     apply: ApplyConfig = Field(default_factory=ApplyConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     prompt: PromptConfig = Field(default_factory=PromptConfig)
+    auto_update: AutoUpdateConfig = Field(default_factory=AutoUpdateConfig)
 
     @field_validator("paths")
     @classmethod

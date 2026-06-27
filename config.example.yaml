@@ -53,6 +53,15 @@ logging:
   audit_file: ./logs/audit.jsonl        # JSONL record of every move (reversible via undo)
   ledger_db: ./state/ledger.sqlite      # content-hash processed-file ledger
 
+auto_update:
+  enabled: false                        # check for + apply a newer version before each run
+  ref: latest-release                   # newest vX.Y.Z tag, or a branch name (e.g. main)
+  install_deps: true                    # reinstall (pip install -e .) when pyproject.toml changed
+  restart: true                         # re-exec into the new version so this run uses it
+  verify_signature: true                # require a trusted commit signature (fail-closed)
+  # allowed_signers_file: /etc/scanfiler/allowed_signers  # SSH-signed commits; omit for gpg keyring
+  # repo_dir: /opt/scanfiler            # defaults to the repo root above the package
+
 prompt:
   context: >
     These are personal scanned documents: receipts, invoices, medical records,

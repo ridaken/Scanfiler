@@ -87,6 +87,34 @@ def test_undo_nonexistent_run(config_file, capsys):
     assert "restored 0" in capsys.readouterr().out
 
 
+def test_run_triggers_self_update_when_enabled(config_file, monkeypatch):
+    import scanfiler.self_update as su
+
+    called = {"n": 0}
+    monkeypatch.setattr(su, "perform_self_update", lambda cfg, deps: called.__setitem__("n", 1))
+
+    data = __import__("yaml").safe_load(config_file.read_text(encoding="utf-8"))
+    data["auto_update"] = {"enabled": True, "verify_signature": False}
+    config_file.write_text(__import__("yaml").safe_dump(data), encoding="utf-8")
+
+    cli.main(["-c", str(config_file), "run"])
+    assert called["n"] == 1
+
+
+def test_dry_run_skips_self_update(config_file, monkeypatch):
+    import scanfiler.self_update as su
+
+    called = {"n": 0}
+    monkeypatch.setattr(su, "perform_self_update", lambda cfg, deps: called.__setitem__("n", 1))
+
+    data = __import__("yaml").safe_load(config_file.read_text(encoding="utf-8"))
+    data["auto_update"] = {"enabled": True}
+    config_file.write_text(__import__("yaml").safe_dump(data), encoding="utf-8")
+
+    cli.main(["-c", str(config_file), "run", "--dry-run"])
+    assert called["n"] == 0
+
+
 def test_loop_stops_on_keyboard_interrupt(config_file, monkeypatch, capsys):
     def stop(*a, **k):
         raise KeyboardInterrupt
