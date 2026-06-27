@@ -8,8 +8,6 @@ compatible servers (llama-server, etc.) force schema-valid output.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -17,10 +15,12 @@ class Decision(BaseModel):
     """The model's proposal for a single file."""
 
     filename: str = Field(description="Base name, NO extension; the tool re-adds the original")
-    subdir: str = Field(description="Target subfolder; one of the provided list unless is_new_subdir")
+    subdir: str = Field(
+        description="Target subfolder; one of the provided list unless is_new_subdir"
+    )
     is_new_subdir: bool = False
     doc_type: str = ""
-    date: Optional[str] = None  # ISO 'YYYY' / 'YYYY-MM' / 'YYYY-MM-DD'; null if unknown
+    date: str | None = None  # ISO 'YYYY' / 'YYYY-MM' / 'YYYY-MM-DD'; null if unknown
     summary: str = ""
     tags: list[str] = Field(default_factory=list)
     confidence: float = 0.0

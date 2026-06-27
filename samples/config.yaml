@@ -1,0 +1,47 @@
+# Ready-to-run demo config for the committed sample documents.
+# From the repo root, with a vision model served at ai.base_url:
+#
+#   scanfiler -c samples/config.yaml plan --proposals samples/proposals.jsonl
+#   # review samples/proposals.jsonl, then:
+#   scanfiler -c samples/config.yaml apply --proposals samples/proposals.jsonl
+#
+# Outputs (samples/library, samples/state, samples/logs, proposals) are gitignored.
+
+paths:
+  inbox_dir: samples/inbox
+  library_dir: samples/library
+  unsorted_subdir: _Unsorted
+
+ai:
+  base_url: http://localhost:8080/v1    # point at your llama-server / mlx-vlm / cloud
+  api_key: ${AI_API_KEY}
+  model: local-vlm
+  constrained_output: true
+
+extraction:
+  pdf_max_pages: 2
+  send_mode: auto
+
+selection:
+  process_pattern: '^(SCAN|PIC|IMG)[\W_]*\d+'
+  min_mtime_age_s: 0                     # samples aren't being synced; process immediately
+
+naming:
+  date_prefix: true
+  allow_new_subdirs: true
+
+categorization:
+  confidence_threshold: 0.6
+
+apply:
+  mode: review
+  action: copy
+
+logging:
+  audit_file: samples/logs/audit.jsonl
+  ledger_db: samples/state/ledger.sqlite
+
+prompt:
+  context: >
+    Demo set of personal scanned documents: an auto-service receipt, an electrician's
+    invoice, and a child's crayon drawing.

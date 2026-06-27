@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scanfiler.apply import apply_proposals, undo
-from scanfiler.ledger import STATUS_APPLIED, Ledger, hash_file
+from scanfiler.ledger import Ledger
 from scanfiler.pipeline import plan
 
 

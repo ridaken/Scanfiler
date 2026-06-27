@@ -12,10 +12,10 @@ import hashlib
 import json
 import sqlite3
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Optional
 
 # Lifecycle of a file in the ledger.
 STATUS_PENDING = "pending"      # seen, not yet decided
@@ -43,8 +43,8 @@ class LedgerEntry:
     status: str
     decision: dict = field(default_factory=dict)
     metadata: dict = field(default_factory=dict)
-    new_path: Optional[str] = None
-    error: Optional[str] = None
+    new_path: str | None = None
+    error: str | None = None
     created_at: float = 0.0
     updated_at: float = 0.0
 
@@ -77,13 +77,13 @@ class Ledger:
     def close(self) -> None:
         self._conn.close()
 
-    def __enter__(self) -> "Ledger":
+    def __enter__(self) -> Ledger:
         return self
 
     def __exit__(self, *exc) -> None:
         self.close()
 
-    def get(self, file_hash: str) -> Optional[LedgerEntry]:
+    def get(self, file_hash: str) -> LedgerEntry | None:
         row = self._conn.execute(
             "SELECT * FROM files WHERE file_hash = ?", (file_hash,)
         ).fetchone()

@@ -41,7 +41,10 @@ def workspace(tmp_path: Path) -> dict:
     inbox.mkdir()
     library.mkdir()
 
-    _make_pdf(inbox / "SCAN0001.pdf", "INVOICE\nAcme Plumbing\nTotal due: $240.00\nDate: 2025-06-15")
+    _make_pdf(
+        inbox / "SCAN0001.pdf",
+        "INVOICE\nAcme Plumbing\nTotal due: $240.00\nDate: 2025-06-15",
+    )
     _make_docx(inbox / "SCAN0002.docx", "Medical record: annual checkup notes for patient.")
     _make_image(inbox / "PIC0001.jpg")
     # Already-named file that should be skipped unless process_all is on.
@@ -95,3 +98,13 @@ class StubClient:
 @pytest.fixture
 def stub_client() -> StubClient:
     return StubClient()
+
+
+@pytest.fixture
+def config_file(workspace, config) -> Path:
+    """Write the test config to a YAML file on disk for CLI-level tests."""
+    import yaml
+
+    path = workspace["root"] / "config.yaml"
+    path.write_text(yaml.safe_dump(config.model_dump(mode="json")), encoding="utf-8")
+    return path
