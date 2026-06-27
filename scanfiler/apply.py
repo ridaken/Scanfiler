@@ -145,7 +145,8 @@ def undo(cfg: Config, *, run_id: str | None = None, last: bool = False) -> int:
     if not audit_file.is_file():
         return 0
 
-    records = [json.loads(line) for line in audit_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+    lines = audit_file.read_text(encoding="utf-8").splitlines()
+    records = [json.loads(line) for line in lines if line.strip()]
     moves = [r for r in records if r.get("action") in ("copy", "move")]
     if not moves:
         return 0

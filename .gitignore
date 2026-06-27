@@ -6,6 +6,13 @@ __pycache__/
 build/
 dist/
 
+# Test / coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
 # Runtime state / secrets / user config
 config.yaml
 secrets.env
@@ -13,6 +20,13 @@ proposals.jsonl
 /logs/
 /state/
 *.lock
+
+# Sample demo: keep the input documents + demo config, ignore generated outputs.
+!samples/config.yaml
+/samples/library/
+/samples/state/
+/samples/logs/
+/samples/proposals.jsonl
 
 # OS
 .DS_Store

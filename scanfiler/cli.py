@@ -163,16 +163,24 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=cmd_init)
 
     sp = sub.add_parser("plan", help="extract + AI, write proposals (no moves)")
-    add_proposals(sp); add_dry(sp); sp.set_defaults(func=cmd_plan)
+    add_proposals(sp)
+    add_dry(sp)
+    sp.set_defaults(func=cmd_plan)
 
     sp = sub.add_parser("apply", help="execute proposals into the library")
-    add_proposals(sp); add_dry(sp); sp.set_defaults(func=cmd_apply)
+    add_proposals(sp)
+    add_dry(sp)
+    sp.set_defaults(func=cmd_apply)
 
     sp = sub.add_parser("run", help="one full cycle (plan, then apply if mode=auto)")
-    add_proposals(sp); add_dry(sp); sp.set_defaults(func=cmd_run)
+    add_proposals(sp)
+    add_dry(sp)
+    sp.set_defaults(func=cmd_run)
 
     sp = sub.add_parser("loop", help="daemon: run a cycle every polling_minutes")
-    add_proposals(sp); add_dry(sp); sp.set_defaults(func=cmd_loop)
+    add_proposals(sp)
+    add_dry(sp)
+    sp.set_defaults(func=cmd_loop)
 
     sp = sub.add_parser("undo", help="reverse a run from the audit log")
     sp.add_argument("--run", help="run id to undo")

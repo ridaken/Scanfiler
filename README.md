@@ -1,5 +1,7 @@
 # scanfiler
 
+[![CI](https://github.com/ridaken/Scanfiler/actions/workflows/ci.yml/badge.svg)](https://github.com/ridaken/Scanfiler/actions/workflows/ci.yml)
+
 AI-powered renamer / reorganizer for a dump of scanned documents. It walks an inbox
 **one file at a time**, sends the first page(s) to an OpenAI-compatible vision-language
 model (built for [llama.cpp / llama-server](https://github.com/ggml-org/llama.cpp) and
@@ -53,6 +55,23 @@ scanfiler undo --last          # reverse the most recent apply run
 scanfiler <cmd> --dry-run      # decide + log, never touch disk
 ```
 
+## Try it on the bundled samples
+
+The repo ships three sample inputs in `samples/inbox/` (an auto-service receipt PDF,
+an electrician's invoice docx, and a child's crayon drawing PNG) and a ready-to-run
+`samples/config.yaml`. Point `ai.base_url` at a vision model, then:
+
+```bash
+scanfiler -c samples/config.yaml plan --proposals samples/proposals.jsonl
+# review samples/proposals.jsonl, then:
+scanfiler -c samples/config.yaml apply --proposals samples/proposals.jsonl
+# results land in samples/library/ (gitignored); undo with:
+scanfiler -c samples/config.yaml undo --last
+```
+
+The drawing has no text, so it exercises the low-confidence → `_Unsorted` path.
+Regenerate the samples any time with `python samples/generate_samples.py`.
+
 ## Key config
 
 | Key | Meaning |
@@ -90,4 +109,25 @@ macOS/Windows: use `scanfiler loop` under launchd / Task Scheduler.
 
 ```bash
 pytest          # stubs the AI client and generates sample PDFs/images; nothing external needed
+ruff check .    # lint
 ```
+
+`pytest` enforces a coverage floor (`--cov-fail-under=90` in `pyproject.toml`).
+
+## Contributing & releases
+
+Changes land via **feature branch → pull request → merge into `main`**, not direct
+commits to `main`.
+
+```bash
+git checkout -b my-change
+ruff check . && pytest
+git push -u origin my-change
+gh pr create --base main --fill
+```
+
+CI (`.github/workflows/ci.yml`) runs the gates on every PR and push: **ruff lint**,
+**pytest + coverage gate**, and a **package build**, across Python 3.11/3.12/3.13.
+On a push to `main` that passes all gates, the release job auto-increments the patch
+version, tags it (`vX.Y.Z`), and publishes a GitHub Release with generated notes — so
+direct commits to `main` would make those notes noisy; use PRs.

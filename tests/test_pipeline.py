@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scanfiler.apply import apply_proposals, undo
-from scanfiler.ledger import STATUS_APPLIED, Ledger, hash_file
+from scanfiler.ledger import Ledger
 from scanfiler.pipeline import plan
 
 
@@ -71,11 +71,9 @@ def test_undo_restores(config, stub_client):
     ledger.close()
 
 
-def test_collision_resolution_same_batch(config, stub_client, workspace):
+def test_collision_resolution_same_batch(config, stub_client, workspace, make_pdf):
     # Two files that both extract as "invoice" -> same desired name -> must dedupe.
-    from tests.conftest import _make_pdf
-
-    _make_pdf(workspace["inbox"] / "SCAN0009.pdf", "INVOICE second one 2025-06")
+    make_pdf(workspace["inbox"] / "SCAN0009.pdf", "INVOICE second one 2025-06")
     ledger, proposals, _ = _plan(config, stub_client)
     invoice_names = [p.new_filename for p in proposals if p.subdir == "Invoices"]
     assert len(invoice_names) == len(set(invoice_names))  # all unique
