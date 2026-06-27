@@ -14,6 +14,12 @@ _MAX_EDGE = 1600
 
 
 def extract_image(path: Path, cfg: ExtractionConfig) -> ExtractResult:
+    # Text-only mode: an image has no text layer, so there is nothing to send.
+    # Return empty (no images) without decoding; the pipeline skips it rather than
+    # shipping an image to a text-only model.
+    if cfg.send_mode == "text":
+        return ExtractResult(kind="image")
+
     from PIL import Image
 
     with Image.open(path) as im:

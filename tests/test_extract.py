@@ -54,6 +54,18 @@ def test_pdf_vision_mode_renders_images(tmp_path):
     assert len(r.images) == 1
 
 
+def test_image_text_mode_sends_nothing(tmp_path):
+    from PIL import Image
+
+    f = tmp_path / "p.png"
+    Image.new("RGB", (32, 32), (10, 20, 30)).save(str(f))
+    r = extract(f, ExtractionConfig(send_mode="text"))
+    assert r.kind == "image"
+    assert r.images == []       # nothing to send to a text-only model
+    assert r.error is None      # not an error
+    assert r.has_content is False
+
+
 def test_image_downscaled_and_pngified(tmp_path):
     from PIL import Image
 

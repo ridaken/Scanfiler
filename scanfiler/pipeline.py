@@ -34,6 +34,7 @@ class PlanStats:
     unsorted: int = 0
     skipped_seen: int = 0
     skipped_selection: int = 0
+    skipped_no_content: int = 0
     errors: int = 0
 
 
@@ -109,16 +110,22 @@ def plan(cfg: Config, client: AIClient, ledger: Ledger) -> tuple[list[Proposal],
             continue
 
         result = extract(path, cfg.extraction)
-        if result.error or not result.has_content:
+        if result.error:
             stats.errors += 1
             ledger.upsert(
                 LedgerEntry(
                     file_hash=file_hash,
                     original_name=path.name,
                     status=STATUS_ERROR,
-                    error=result.error or "no extractable content",
+                    error=result.error,
                 )
             )
+            continue
+        if not result.has_content:
+            # Nothing to send in this mode (e.g. an image file under send_mode: text,
+            # or a PDF with no text layer). Not an error: skip without recording a
+            # terminal status, so it is reconsidered if vision is later enabled.
+            stats.skipped_no_content += 1
             continue
 
         try:

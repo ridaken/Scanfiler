@@ -20,7 +20,9 @@ ai:
 extraction:
   pdf_max_pages: 2                      # only the first N pages go to the model
   raster_dpi: 150                       # rasterization DPI for the vision model
-  send_mode: auto                       # vision | text | auto (text if rich layer, else images)
+  send_mode: auto                       # vision | text | auto. text = never send images
+                                        #   (image-only files are skipped); auto uses text
+                                        #   when the layer is rich, else page images.
 
 selection:
   process_pattern: '^(SCAN|PIC|IMG)[\W_]*\d+'   # "looks unprocessed"

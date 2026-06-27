@@ -25,6 +25,14 @@ def _make_client(cfg: Config):
     return make_client(cfg.ai)
 
 
+def _stats_line(stats) -> str:
+    return (
+        f"proposed={stats.proposed} unsorted={stats.unsorted} "
+        f"skipped_seen={stats.skipped_seen} skipped_no_content={stats.skipped_no_content} "
+        f"errors={stats.errors}"
+    )
+
+
 def cmd_init(args) -> int:
     dest = Path(args.config)
     if dest.exists():
@@ -49,10 +57,7 @@ def cmd_plan(args) -> int:
         print(f"Wrote {len(proposals)} proposals to {args.proposals}")
     else:
         print("[dry-run] not writing proposals file")
-    print(
-        f"proposed={stats.proposed} unsorted={stats.unsorted} "
-        f"skipped_seen={stats.skipped_seen} errors={stats.errors}"
-    )
+    print(_stats_line(stats))
     return 0
 
 
@@ -92,10 +97,7 @@ def _run_once(cfg: Config, args) -> int:
         with file_lock(lock_path):
             with open_ledger(cfg.logging.ledger_db) as ledger:
                 proposals, stats = plan(cfg, client, ledger)
-                print(
-                    f"proposed={stats.proposed} unsorted={stats.unsorted} "
-                    f"skipped_seen={stats.skipped_seen} errors={stats.errors}"
-                )
+                print(_stats_line(stats))
                 if cfg.apply.mode == "auto" and not args.dry_run:
                     result = apply_proposals(cfg, proposals, ledger)
                     print(f"[auto-apply] run={result.run_id} applied={result.applied} "
