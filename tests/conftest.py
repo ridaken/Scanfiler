@@ -101,6 +101,12 @@ def stub_client() -> StubClient:
 
 
 @pytest.fixture
+def make_pdf():
+    """Factory for writing a small text PDF (avoids cross-module test imports)."""
+    return _make_pdf
+
+
+@pytest.fixture
 def config_file(workspace, config) -> Path:
     """Write the test config to a YAML file on disk for CLI-level tests."""
     import yaml
