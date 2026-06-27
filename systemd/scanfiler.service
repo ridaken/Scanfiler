@@ -1,0 +1,21 @@
+[Unit]
+Description=scanfiler — AI document renamer/reorganizer (one cycle)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Adjust user and paths to your install.
+User=scanfiler
+WorkingDirectory=/opt/scanfiler
+# Secrets (AI_API_KEY, etc.) live here, not in config.yaml.
+EnvironmentFile=-/opt/scanfiler/secrets.env
+ExecStart=/opt/scanfiler/.venv/bin/scanfiler --config /opt/scanfiler/config.yaml run
+# Hardening (loosen if your paths require it).
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/scanfiler /data/Library
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

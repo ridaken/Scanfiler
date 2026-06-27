@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Runtime state / secrets / user config
+config.yaml
+secrets.env
+proposals.jsonl
+/logs/
+/state/
+*.lock
+
+# OS
+.DS_Store
+Thumbs.db

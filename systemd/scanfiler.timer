@@ -1,0 +1,12 @@
+[Unit]
+Description=Run scanfiler on a schedule
+
+[Timer]
+# First run shortly after boot, then every 15 minutes. Change to taste.
+OnBootSec=2min
+OnUnitActiveSec=15min
+Persistent=true
+Unit=scanfiler.service
+
+[Install]
+WantedBy=timers.target
