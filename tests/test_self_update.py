@@ -232,9 +232,12 @@ def test_allowed_signers_file_passed_to_verify():
 # ---- default helpers ----
 
 def test_resolve_repo_dir_override_and_default():
+    from pathlib import Path
+
     assert resolve_repo_dir("/custom") == "/custom"
+    # Default is the repo root above the package, so it contains the scanfiler/ package.
     default = resolve_repo_dir()
-    assert default.endswith("scanfiler") or "scanfiler" in default
+    assert (Path(default) / "scanfiler" / "self_update.py").is_file()
 
 
 def test_default_run_executes(tmp_path):
