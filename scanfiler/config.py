@@ -87,6 +87,8 @@ class ApplyConfig(BaseModel):
 
 
 class LoggingConfig(BaseModel):
+    enabled: bool = True                       # write a timestamped per-run log file
+    log_dir: Path = Path("./logs")             # where per-run logs (and audit) live
     level: Literal["debug", "info", "warn", "error"] = "info"
     audit_file: Path = Path("./logs/audit.jsonl")
     ledger_db: Path = Path("./state/ledger.sqlite")

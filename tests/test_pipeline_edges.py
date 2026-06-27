@@ -59,6 +59,27 @@ def test_ai_exception_marks_error(config, workspace):
     assert any("ai:" in (e.error or "") for e in errors)
 
 
+def test_text_mode_skips_image_files_without_sending(config, workspace):
+    # send_mode: text must never ship an image; image-only files are skipped, not errored.
+    config.extraction.send_mode = "text"
+    calls: list[list[dict]] = []
+
+    class _Recording:
+        def decide(self, system_prompt, content, subdirs, allow_new):
+            calls.append(content)
+            return Decision(filename="Doc", subdir="Misc", confidence=0.9)
+
+    with Ledger(config.logging.ledger_db) as ledger:
+        proposals, stats = plan(config, _Recording(), ledger)
+
+    assert stats.skipped_no_content >= 1            # the PIC0001.jpg
+    assert stats.errors == 0                         # skipping is not an error
+    assert not any("PIC0001" in p.original_path for p in proposals)
+    # the text docs were processed, but no request ever carried an image part
+    sent_parts = [part for c in calls for part in c]
+    assert sent_parts and all(p.get("type") != "image_url" for p in sent_parts)
+
+
 def test_mtime_guard_excludes_fresh_files(config, workspace):
     config.selection.min_mtime_age_s = 3600  # everything is "too fresh"
     assert list(iter_inbox(config)) == []

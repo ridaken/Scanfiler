@@ -25,6 +25,15 @@ def _make_client(cfg: Config):
     return make_client(cfg.ai)
 
 
+def _stats_line(stats) -> str:
+    return (
+        f"sent={stats.sent} proposed={stats.proposed} unsorted={stats.unsorted} "
+        f"skipped_seen={stats.skipped_seen} "
+        f"skipped_criteria={stats.skipped_selection + stats.skipped_no_content} "
+        f"errors={stats.errors}"
+    )
+
+
 def cmd_init(args) -> int:
     dest = Path(args.config)
     if dest.exists():
@@ -39,20 +48,20 @@ def cmd_plan(args) -> int:
     from .ledger import open_ledger
     from .pipeline import plan
     from .proposals import write_proposals
+    from .runlog import open_run_log
 
     cfg = _load(args)
     client = _make_client(cfg)
-    with open_ledger(cfg.logging.ledger_db) as ledger:
-        proposals, stats = plan(cfg, client, ledger)
+    with open_run_log(cfg) as (log, log_path), open_ledger(cfg.logging.ledger_db) as ledger:
+        proposals, stats = plan(cfg, client, ledger, log)
     if not args.dry_run:
         write_proposals(args.proposals, proposals)
         print(f"Wrote {len(proposals)} proposals to {args.proposals}")
     else:
         print("[dry-run] not writing proposals file")
-    print(
-        f"proposed={stats.proposed} unsorted={stats.unsorted} "
-        f"skipped_seen={stats.skipped_seen} errors={stats.errors}"
-    )
+    print(_stats_line(stats))
+    if log_path:
+        print(f"log: {log_path}")
     return 0
 
 
@@ -77,6 +86,7 @@ def _run_once(cfg: Config, args) -> int:
     from .lock import LockHeld, file_lock
     from .pipeline import plan
     from .proposals import write_proposals
+    from .runlog import open_run_log
 
     # Check for + apply a newer release before doing any work. Done before the lock so a
     # re-exec into the updated version doesn't deadlock against our own lockfile. On a
@@ -90,12 +100,11 @@ def _run_once(cfg: Config, args) -> int:
     lock_path = Path(cfg.logging.ledger_db).with_suffix(".lock")
     try:
         with file_lock(lock_path):
-            with open_ledger(cfg.logging.ledger_db) as ledger:
-                proposals, stats = plan(cfg, client, ledger)
-                print(
-                    f"proposed={stats.proposed} unsorted={stats.unsorted} "
-                    f"skipped_seen={stats.skipped_seen} errors={stats.errors}"
-                )
+            with open_run_log(cfg) as (log, log_path), open_ledger(cfg.logging.ledger_db) as ledger:
+                proposals, stats = plan(cfg, client, ledger, log)
+                print(_stats_line(stats))
+                if log_path:
+                    print(f"log: {log_path}")
                 if cfg.apply.mode == "auto" and not args.dry_run:
                     result = apply_proposals(cfg, proposals, ledger)
                     print(f"[auto-apply] run={result.run_id} applied={result.applied} "

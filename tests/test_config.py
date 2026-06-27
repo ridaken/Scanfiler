@@ -17,6 +17,19 @@ def test_env_interpolation(tmp_path, monkeypatch):
     assert cfg.ai.api_key == "secret-token"
 
 
+def test_logging_enabled_by_default(tmp_path):
+    cfg_file = tmp_path / "config.yaml"
+    cfg_file.write_text(
+        "paths:\n"
+        f"  inbox_dir: {tmp_path / 'in'}\n"
+        f"  library_dir: {tmp_path / 'lib'}\n",
+        encoding="utf-8",
+    )
+    cfg = load_config(cfg_file)
+    assert cfg.logging.enabled is True
+    assert cfg.logging.log_dir.name == "logs"
+
+
 def test_missing_env_becomes_empty(tmp_path, monkeypatch):
     monkeypatch.delenv("NOPE_VAR", raising=False)
     cfg_file = tmp_path / "config.yaml"

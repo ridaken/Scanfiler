@@ -20,7 +20,9 @@ ai:
 extraction:
   pdf_max_pages: 2                      # only the first N pages go to the model
   raster_dpi: 150                       # rasterization DPI for the vision model
-  send_mode: auto                       # vision | text | auto (text if rich layer, else images)
+  send_mode: auto                       # vision | text | auto. text = never send images
+                                        #   (image-only files are skipped); auto uses text
+                                        #   when the layer is rich, else page images.
 
 selection:
   process_pattern: '^(SCAN|PIC|IMG)[\W_]*\d+'   # "looks unprocessed"
@@ -49,6 +51,8 @@ apply:
   on_collision: suffix                  # suffix (-2,-3) | skip | overwrite
 
 logging:
+  enabled: true                         # write a fresh timestamped log file each run
+  log_dir: ./logs                       # where per-run logs land (scanfiler-<timestamp>.log)
   level: info                           # debug | info | warn | error
   audit_file: ./logs/audit.jsonl        # JSONL record of every move (reversible via undo)
   ledger_db: ./state/ledger.sqlite      # content-hash processed-file ledger

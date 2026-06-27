@@ -14,10 +14,12 @@ class _FakeResponse:
     def __init__(self, payload, status_ok=True):
         self._payload = payload
         self._ok = status_ok
+        self.status_code = 200 if status_ok else 500
+        self.text = json.dumps(payload)
 
     def raise_for_status(self):
         if not self._ok:
-            raise RuntimeError("HTTP 500")
+            raise RuntimeError(f"HTTP {self.status_code}")
 
     def json(self):
         return self._payload
@@ -56,9 +58,13 @@ def _decision_payload(**over):
 def _patch_httpx(monkeypatch):
     import httpx
 
+    import scanfiler.ai.client as client_module
+
     _FakeClient.script = []
     _FakeClient.posted = []
     monkeypatch.setattr(httpx, "Client", _FakeClient)
+    # No retry backoff during tests.
+    monkeypatch.setattr(client_module.time, "sleep", lambda *a, **k: None)
 
 
 def _client(**over):
@@ -100,3 +106,32 @@ def test_api_key_sets_auth_header():
 
 def test_make_client_returns_openai_compat():
     assert isinstance(make_client(AIConfig()), OpenAICompatClient)
+
+
+def test_aierror_carries_status_and_response():
+    from scanfiler.ai.client import AIError
+
+    _FakeClient.script = [_FakeResponse({"error": "overloaded"}, status_ok=False) for _ in range(3)]
+    with pytest.raises(AIError) as ei:
+        _client().decide("sys", [], [], True)
+    err = ei.value
+    assert err.status_code == 500
+    assert "overloaded" in (err.response_text or "")
+    assert err.attempts == 3
+    assert err.url.endswith("/chat/completions")
+    detail = err.detail()
+    assert "status_code=500" in detail and "overloaded" in detail
+
+
+def test_redact_request_hides_base64_image():
+    from scanfiler.ai.client import redact_request
+
+    body = {"messages": [{"role": "user", "content": [
+        {"type": "text", "text": "hi"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,QUJDQUJD"}},
+    ]}]}
+    red = redact_request(body)
+    redacted_url = red["messages"][0]["content"][1]["image_url"]["url"]
+    assert "base64" not in redacted_url and "chars" in redacted_url
+    # original is untouched (deep copy)
+    assert body["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image")

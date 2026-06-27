@@ -64,6 +64,7 @@ def config(workspace) -> Config:
             },
             "selection": {"min_mtime_age_s": 0},  # files are brand new in tests
             "logging": {
+                "log_dir": str(root / "logs"),
                 "audit_file": str(root / "logs" / "audit.jsonl"),
                 "ledger_db": str(root / "state" / "ledger.sqlite"),
             },
