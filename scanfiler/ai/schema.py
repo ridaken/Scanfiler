@@ -39,20 +39,26 @@ def build_response_format(existing_subdirs: list[str], allow_new: bool) -> dict:
     else:
         subdir_schema = {"type": "string"}
 
+    properties = {
+        "filename": {"type": "string", "minLength": 1},
+        "subdir": subdir_schema,
+        "is_new_subdir": {"type": "boolean"},
+        # minLength forces non-empty: the model can't satisfy the constraint by
+        # emitting "" for doc_type/summary (which it did when they were optional).
+        "doc_type": {"type": "string", "minLength": 1},
+        "date": {"type": ["string", "null"]},
+        "summary": {"type": "string", "minLength": 1},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    }
     schema = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["filename", "subdir", "confidence"],
-        "properties": {
-            "filename": {"type": "string", "minLength": 1},
-            "subdir": subdir_schema,
-            "is_new_subdir": {"type": "boolean"},
-            "doc_type": {"type": "string"},
-            "date": {"type": ["string", "null"]},
-            "summary": {"type": "string"},
-            "tags": {"type": "array", "items": {"type": "string"}},
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        },
+        # All fields required: forces doc_type/summary to be populated and makes the
+        # schema OpenAI strict-mode compliant (portable to cloud providers). `date`
+        # stays nullable; `tags` may be an empty array.
+        "required": list(properties),
+        "properties": properties,
     }
     return {
         "type": "json_schema",

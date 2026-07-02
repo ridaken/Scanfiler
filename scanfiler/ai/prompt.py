@@ -17,12 +17,14 @@ Rules:
 - subdir: PREFER one of the existing subfolders below. Only set is_new_subdir=true and
   invent a new one when none genuinely fits.{new_rule}
 - date: the document's own date as ISO (YYYY, YYYY-MM, or YYYY-MM-DD); null if none.
-- doc_type: a short lowercase noun (receipt, invoice, medical_record, drawing, letter...).
-- summary: 1-2 sentences capturing what this document is, for later search.
+- doc_type: REQUIRED, never empty — a short lowercase noun (receipt, invoice,
+  medical_record, drawing, letter, statement...). Use "unknown" only as a last resort.
+- summary: REQUIRED, never empty — 1-2 sentences capturing what this document is, for
+  later search.
 - tags: 2-6 short lowercase keywords.
 - confidence: 0..1, your certainty in the filename+subdir. Be honest; low is fine.
 
-Existing subfolders: {subdirs}
+Every field is required. Existing subfolders: {subdirs}
 """
 
 _NO_NEW = "\n- New subfolders are DISABLED: you MUST pick from the existing list."
