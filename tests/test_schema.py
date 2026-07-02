@@ -24,3 +24,20 @@ def test_decision_defaults():
     assert d.is_new_subdir is False
     assert d.tags == []
     assert d.date is None
+
+
+def test_all_fields_required():
+    schema = build_response_format(["A"], allow_new=True)["json_schema"]["schema"]
+    # Every property is required (forces doc_type/summary; OpenAI strict-compliant).
+    assert set(schema["required"]) == set(schema["properties"])
+    assert "doc_type" in schema["required"]
+    assert "summary" in schema["required"]
+
+
+def test_doctype_and_summary_are_non_empty():
+    props = build_response_format([], allow_new=True)["json_schema"]["schema"]["properties"]
+    assert props["doc_type"]["minLength"] == 1
+    assert props["summary"]["minLength"] == 1
+    # date stays nullable, tags may be empty
+    assert props["date"] == {"type": ["string", "null"]}
+    assert "minItems" not in props["tags"]
